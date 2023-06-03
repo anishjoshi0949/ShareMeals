@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_mysqldb import MySQL
 import mysql.connector
+import jinja2
 
 app = Flask(__name__)
 app.config['MYSQL_HOST'] = 'localhost'
@@ -11,62 +12,40 @@ app.config['MYSQL_DB'] = 'sharemeals'
 mysql = MySQL(app)
 
 
-# @app.route('/', methods=['GET', 'POST'])
-# def hello_world():
-#     if request.method == 'POST':
-#         print(request.form['email'])
-        # username = request.form['username']
-        # email = request.form['email']
-        # pswd = request.form['pswd']
-        # contact = request.form['contact']
-        # address = request.form['address']
-        # conn= mysql.connector.connect(host="localhost", user="root", password= "unlockmysql",database="sharemeals")
-        # cur=conn.cursor()
-        # # cur = mysql.connection.cursor()
-        # cur.execute("insert into donor values('%s','%s','%s','%s','%s')"%(username,address,contact,email,pswd))
-        # conn.commit()
+@app.route('/', methods=['GET', 'POST'])
+def home():
 
-    # return 'Hello, World!'
-    # return render_template('donor_login.html')
+    return render_template("landing_page_donor.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        cur = mysql.connection.cursor()
         user = request.form.get('username')
         password = request.form.get('password')
-        print(user)
-        print(password)
-        # username = request.form['username']
-        # email = request.form['email']
-        # pswd = request.form['pswd']
-        # contact = request.form['contact']
-        # address = request.form['address']
-        # conn= mysql.connector.connect(host="localhost", user="root", password= "unlockmysql",database="sharemeals")
-        # cur=conn.cursor()
-        # # cur = mysql.connection.cursor()
-        # cur.execute("insert into donor values('%s','%s','%s','%s','%s')"%(username,address,contact,email,pswd))
-        # conn.commit()
+        cur.execute("select * from donor where name = '%s';"%(user))
+        data = cur.fetchone()
 
-    # return 'Hello, World!'
+        if password == data[-1]:
+            print("valid successfully")
+            return render_template("landing_page_donor.html")
+
+        else:
+            return render_template('donor_login.html')
+
+        # print(user)
+        # print(password)
+
     return render_template('donor_login.html')
+@app.route('/donate', methods=['GET', 'POST'])
+def donate():
+    cur = mysql.connection.cursor()
+    cur.execute("select * from ngo where reqchk='yes';")
+    ngolist = cur.fetchall()
 
 
-# @app.route('/', methods = ['GET','POST'])
-# def login():
-#     if request.method=='POST':
-#         x  = request.form.get('email')
-#         y = request.form.get('pswd')
-#         print(x)
-#         print(y)
-#     return render_template('login.html')
-
-
-# @app.route('/login', methods = ['GET','POST'])
-# def login():
-
-# @app.route('/login', methods = ['GET','POST'])
-# def login():
+    return render_template("ngo_list.html", ngolist=ngolist)
 
 if __name__ == "__main__":
     app.run(debug=True)
